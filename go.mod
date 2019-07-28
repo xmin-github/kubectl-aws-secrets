@@ -1,4 +1,4 @@
-module github.com/xmin-github/kubectl-secrets
+module github.com/xmin-github/kubectl-aws-secrets
 
 go 1.12
 

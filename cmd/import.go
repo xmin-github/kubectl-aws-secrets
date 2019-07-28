@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/xmin-github/kubectl-secrets/internal/awssm"
-	"github.com/xmin-github/kubectl-secrets/internal/k8sutil"
+	"github.com/xmin-github/kubectl-aws-secrets/internal/awssm"
+	"github.com/xmin-github/kubectl-aws-secrets/internal/k8sutil"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 )
 
