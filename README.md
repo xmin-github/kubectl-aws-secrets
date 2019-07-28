@@ -1,0 +1,1 @@
+# kubectl-aws-secrets
