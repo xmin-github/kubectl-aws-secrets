@@ -37,24 +37,25 @@ func createImportCommand(streams genericclioptions.IOStreams) *cobra.Command {
 			if len(args) != 0 {
 				return errors.New("this command does not accept arguments")
 			}
-			return secret.importCmdExecute(secretName, k8sSecretName, forceUpdate)
+			return secret.importCmdExecute(k8sSecretName, secretName, forceUpdate)
 		},
 	}
 	return sCmd
 }
 
-func (sv *awsSecret) importCmdExecute(secretName string, k8sSecretName string, Updated bool) error {
-	secret, err := awssm.GetSecret(secretName)
+func (sv *awsSecret) importCmdExecute(k8sSecretName string, secretName string, forceUpdate bool) error {
+
+	secretValue, err := awssm.GetSecret(secretName)
 	if err != nil {
 		return err
 	}
 
-	_, err = fmt.Fprintf(sv.out, "AWS Secrets Manager item: %s %s\n", secretName, secret)
+	_, err = fmt.Fprintf(sv.out, "AWS Secrets Manager item: %s %s\n", secretName, secretValue)
 	if err != nil {
 		return err
 	}
 
-	result, err := k8sutil.CreateSecret(secretName, secret)
+	result, err := k8sutil.CreateSecret(k8sSecretName, secretName, secretValue, forceUpdate)
 	if err != nil {
 		fmt.Fprintf(sv.out, "Kubernete Secret: %s\n", err.Error())
 	} else {

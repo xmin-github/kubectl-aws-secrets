@@ -43,7 +43,18 @@ func (sv *awsSecret) getCmdExecute(secretName string) error {
 	if err != nil {
 		return err
 	}
+	
+	fmt.Printf("IsJSONString(%s) = %v\n", secret, IsJSONString(secret))
+	fmt.Printf("IsJSON(%s) = %v\n", secret, IsJSON(secret))
+	if IsJSON(secret) {
+		sKey, sValue, err := ParseKeyPair(secret)
+		if err != nil {
+			return err
+		}
 
+		fmt.Fprintf(sv.out, "AWS secret key: %s, value: %s\n", sKey, sValue)
+	}
+	
 	return nil
 }
 

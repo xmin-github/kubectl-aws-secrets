@@ -39,15 +39,20 @@ func GetServerVersion() (string, error) {
 }
 
 //CreateSecret creates a Secret object in Kubernetes
-func CreateSecret(secretName string, secretValue string) (string, error) {
+func CreateSecret(secretName string, dataKey string, dataValue string, forceUpdate bool) (string, error) {
 	var kubeconfig *string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+	var configEnv string
+	configEnv = os.Getenv("KUBECONFIG")
+	if configEnv != "" {
+		kubeconfig = &configEnv
 	} else {
-		kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		if home := homedir.HomeDir(); home != "" {
+			kubeconfig = flag.String("kubeconfig", filepath.Join(home, ".kube", "config"), "(optional) absolute path to the kubeconfig file")
+		} else {
+			kubeconfig = flag.String("kubeconfig", "", "absolute path to the kubeconfig file")
+		}
+		flag.Parse()
 	}
-	flag.Parse()
-
 	config, err := clientcmd.BuildConfigFromFlags("", *kubeconfig)
 	if err != nil {
 		panic(err)
@@ -63,10 +68,10 @@ func CreateSecret(secretName string, secretValue string) (string, error) {
 		},*/
 		Type: apiv1.SecretTypeOpaque,
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "xm-example-secret",
+			Name: secretName,
 		},
 		StringData: map[string]string{
-			secretName: secretValue,
+			dataKey: dataValue,
 		},
 	}
 	secretClient := clientset.CoreV1().Secrets(apiv1.NamespaceDefault)
