@@ -6,42 +6,21 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/homedir"
+	"k8s.io/client-go/util/retry"
 )
-
-//GetServerVersion gets Kubernetes server version
-func GetServerVersion() (string, error) {
-	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
-	configOverrides := &clientcmd.ConfigOverrides{}
-	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverrides)
-
-	config, err := kubeConfig.ClientConfig()
-	if err != nil {
-		return "", err
-	}
-
-	clientset, err := kubernetes.NewForConfig(config)
-	if err != nil {
-		return "", err
-	}
-
-	sv, err := clientset.Discovery().ServerVersion()
-	if err != nil {
-		return "", err
-	}
-
-	return sv.String(), nil
-}
 
 //CreateSecret creates a Secret object in Kubernetes
 func CreateSecret(secretName string, dataKey string, dataValue string, forceUpdate bool) (string, error) {
 	var kubeconfig *string
 	var configEnv string
+	fmt.Printf("force update %v\n", forceUpdate)
 	configEnv = os.Getenv("KUBECONFIG")
 	if configEnv != "" {
 		kubeconfig = &configEnv
@@ -70,8 +49,8 @@ func CreateSecret(secretName string, dataKey string, dataValue string, forceUpda
 		ObjectMeta: metav1.ObjectMeta{
 			Name: secretName,
 		},
-		StringData: map[string]string{
-			dataKey: dataValue,
+		Data: map[string][]byte{
+			dataKey: []byte(dataValue),
 		},
 	}
 	secretClient := clientset.CoreV1().Secrets(apiv1.NamespaceDefault)
@@ -80,9 +59,36 @@ func CreateSecret(secretName string, dataKey string, dataValue string, forceUpda
 	if err == nil {
 		fmt.Printf("%q created \n", result.GetObjectMeta().GetName())
 		return result.GetObjectMeta().GetName(), nil
-	}
-	return "", err
+	} else if strings.Contains(err.Error(), "already exists") && forceUpdate {
+		//update the secrete
+		retryErr := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+			// Retrieve the latest version of Deployment before attempting update
+			// RetryOnConflict uses exponential backoff to avoid exhausting the apiserver
+			currSecret, getErr := secretClient.Get(secretName, metav1.GetOptions{})
+			if getErr != nil {
+				panic(fmt.Errorf("Failed to get secret %s: %v", secretName, getErr))
+			}
+			if currSecret.Data != nil {
+				currSecret.Data[dataKey] = []byte(dataValue)
+			} else {
+				currSecret.Data = make(map[string][]byte)
+				currSecret.Data[dataKey] = []byte(dataValue)
+			}
+			_, updateErr := secretClient.Update(currSecret)
+			if updateErr == nil {
+				fmt.Printf("secret %s is updated\n", secretName)
+			}
+			return updateErr
+		})
+		if retryErr != nil {
+			panic(fmt.Errorf("Update secrete %s failed: %v", secretName, retryErr))
+		}
 
+	} else {
+		return secretName, err
+
+	}
+	return secretName, nil
 }
 
 func prompt() {

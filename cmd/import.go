@@ -29,6 +29,7 @@ func createImportCommand(streams genericclioptions.IOStreams) *cobra.Command {
 			if err != nil {
 				return err
 			}
+
 			forceUpdate, err := c.Flags().GetBool("force")
 			if err != nil {
 				return err
@@ -45,17 +46,29 @@ func createImportCommand(streams genericclioptions.IOStreams) *cobra.Command {
 
 func (sv *awsSecret) importCmdExecute(k8sSecretName string, secretName string, forceUpdate bool) error {
 
-	secretValue, err := awssm.GetSecret(secretName)
+	secret, err := awssm.GetSecret(secretName)
+	var dataKey, dataValue string
 	if err != nil {
 		return err
 	}
 
-	_, err = fmt.Fprintf(sv.out, "AWS Secrets Manager item: %s %s\n", secretName, secretValue)
+	_, err = fmt.Fprintf(sv.out, "AWS Secrets Manager item: %s %s\n", secretName, secret)
 	if err != nil {
 		return err
 	}
-
-	result, err := k8sutil.CreateSecret(k8sSecretName, secretName, secretValue, forceUpdate)
+	if IsJSON(secret) {
+		dataKey, dataValue, err = ParseKeyPair(secret)
+		if err != nil {
+			return err
+		}
+	} else {
+		dataKey = secretName
+		dataValue = secret
+	}
+	if k8sSecretName == "" {
+		k8sSecretName = secretName
+	}
+	result, err := k8sutil.CreateSecret(k8sSecretName, dataKey, dataValue, forceUpdate)
 	if err != nil {
 		fmt.Fprintf(sv.out, "Kubernete Secret: %s\n", err.Error())
 	} else {
@@ -70,8 +83,8 @@ var importSecretCmd = createImportCommand(genericclioptions.IOStreams{In: os.Std
 func init() {
 	importSecretCmd.Flags().StringVarP(&awsSecretID, "aws-secret-id", "a", "", "Secret Name in AWS Secrets Manager")
 	importSecretCmd.Flags().StringVarP(&k8sSecretName, "k8s-secret-name", "k", "", "Secret object name in ks")
+	importSecretCmd.Flags().StringVarP(&nameSpace, "namespace", "n", "default", "Namespace for the secret")
 	importSecretCmd.Flags().BoolVarP(&force, "force", "f", false, "if a secret exists, update it ")
 	importSecretCmd.MarkFlagRequired("aws-secret-id")
-	importSecretCmd.MarkFlagRequired("k8s-secret-name")
 	rootCmd.AddCommand(importSecretCmd)
 }

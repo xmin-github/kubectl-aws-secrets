@@ -13,6 +13,7 @@ var cfgFile string
 var awsSecretID string
 var k8sSecretName string
 var force bool
+var nameSpace string
 
 type awsSecret struct {
 	out io.Writer
