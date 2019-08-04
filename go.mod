@@ -1,6 +1,6 @@
 module github.com/xmin-github/kubectl-aws-secrets
 
-go 1.11.4
+go 1.12.2
 
 require (
 	github.com/Masterminds/semver v1.4.2 // indirect
@@ -33,7 +33,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20190603182131-db7b694dc208 // indirect
 	k8s.io/utils v0.0.0-20190607212802-c55fbcfc754a // indirect
 	sigs.k8s.io/kustomize v2.0.3+incompatible // indirect
-	//sigs.k8s.io/kustomize v2.0.3+incompatible // indirect
 	sigs.k8s.io/yaml v1.1.0 // indirect
 
 )
