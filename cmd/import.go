@@ -52,7 +52,7 @@ func (sv *awsSecret) importCmdExecute(k8sSecretName string, secretName string, f
 		return err
 	}
 
-	_, err = fmt.Fprintf(sv.out, "AWS Secrets Manager item: %s %s\n", secretName, secret)
+	_, err = fmt.Fprintf(sv.out, "AWS Secrets Manager item: %s\n", secretName)
 	if err != nil {
 		return err
 	}
