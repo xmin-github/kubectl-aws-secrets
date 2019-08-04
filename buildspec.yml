@@ -23,7 +23,10 @@ phases:
   build:
     commands:
       - go version
+      - ls -la $HOME/
+      - cd $HOME/kubectl-aws-secrets
       - go build -o kubectl-aws_secrets
+      - cp kubectl-aws_secrets /usr/local/bin/
 
   post_build:
     commands:
