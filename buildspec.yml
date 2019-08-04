@@ -25,6 +25,7 @@ phases:
       - go version
       - cd $CODEBUILD_SRC_DIR
       - export GOMODULE111=on
+      - go mod vendor
       - go get ./...
       - go build -o kubectl-aws_secrets
       - cp kubectl-aws_secrets /usr/local/bin/
