@@ -38,4 +38,4 @@ phases:
       - kubectl-aws_secrets import -a xm-keytools.root.pass
    
 artifacts:
-  files: $CODEBUILD_SRC_DIR/kubectl-aws_secrets
+  files: $CODEBUILD_SRC_DIR/bin/kubectl-aws-secrets.tar.gz
