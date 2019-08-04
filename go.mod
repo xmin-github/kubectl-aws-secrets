@@ -1,6 +1,6 @@
 module github.com/xmin-github/kubectl-aws-secrets
 
-go 1.12
+go 1.11.4
 
 require (
 	github.com/Masterminds/semver v1.4.2 // indirect
