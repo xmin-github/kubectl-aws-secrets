@@ -22,9 +22,8 @@ type awsSecret struct {
 var rootCmd = &cobra.Command{
 	Use:   "aws-secrets [command] [flags]",
 	Short: "import secret from aws",
-	Long: `A Fast and Flexible Static Site Generator built with
-                love by spf13 and friends in Go.
-                Complete documentation is available at http://hugo.spf13.com`,
+	Long: `This tool is used to retrieved secrets stored in AWS Secrets Manager 
+                and create Secret in Kubernetes`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// Do Stuff Here
 	},
