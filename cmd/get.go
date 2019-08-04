@@ -43,7 +43,7 @@ func (sv *awsSecret) getCmdExecute(secretName string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	fmt.Printf("IsJSONString(%s) = %v\n", secret, IsJSONString(secret))
 	fmt.Printf("IsJSON(%s) = %v\n", secret, IsJSON(secret))
 	if IsJSON(secret) {
@@ -54,7 +54,7 @@ func (sv *awsSecret) getCmdExecute(secretName string) error {
 
 		fmt.Fprintf(sv.out, "AWS secret key: %s, value: %s\n", sKey, sValue)
 	}
-	
+
 	return nil
 }
 
@@ -62,6 +62,7 @@ var getSecretCmd = createGetCommand(genericclioptions.IOStreams{In: os.Stdin, Ou
 
 func init() {
 	getSecretCmd.Flags().StringVarP(&awsSecretID, "aws-secret-id", "a", "", "Secret Name in AWS Secrets Manager")
+	getSecretCmd.Flags().StringVarP(&iamRole, "role-arn", "r", "", "aws iam role")
 	getSecretCmd.MarkFlagRequired("aws-secret-id")
 	rootCmd.AddCommand(getSecretCmd)
 }

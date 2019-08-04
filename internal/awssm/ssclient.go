@@ -7,22 +7,63 @@ package awssm
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/secretsmanager"
 )
 
+func hasValidEnvProvider() bool {
+	id := os.Getenv("AWS_ACCESS_KEY_ID")
+	if id == "" {
+		id = os.Getenv("AWS_ACCESS_KEY")
+	}
+
+	secret := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	if secret == "" {
+		secret = os.Getenv("AWS_SECRET_KEY")
+	}
+
+	if id == "" {
+		return false
+	}
+
+	if secret == "" {
+		return false
+	}
+	return true
+}
+
 //GetSecret gets secret value for a secret name
 func GetSecret(secretName string) (string, error) {
 	//region := "us-east-1"
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
-	}))
+	envProvider := &credentials.EnvProvider{}
+	var svc *secretsmanager.SecretsManager
+	var sess *session.Session
+	var err error
+	//fmt.Printf("AWS_ACCESS_KEY_ID: %s\n", os.Getenv("AWS_ACCESS_KEY_ID"))
+	creds := credentials.NewChainCredentials(
+		[]credentials.Provider{
+			envProvider,
+		})
+	sess, err = session.NewSession(&aws.Config{
+		Credentials: creds,
+	})
+
+	if hasValidEnvProvider() == false {
+		fmt.Println("ErrNoValidProvidersFoundInChain, try AssumeRoleTokenProvider")
+		sess, err = session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		})
+	}
+	svc = secretsmanager.New(session.Must(sess, err))
+
 	//Create a Secrets Manager client
-	svc := secretsmanager.New(sess)
+
 	input := &secretsmanager.GetSecretValueInput{
 		SecretId:     aws.String(secretName),
 		VersionStage: aws.String("AWSCURRENT"), // VersionStage defaults to AWSCURRENT if unspecified
@@ -35,6 +76,7 @@ func GetSecret(secretName string) (string, error) {
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
+
 			case secretsmanager.ErrCodeDecryptionFailure:
 				// Secrets Manager can't decrypt the protected secret text using the provided KMS key.
 				fmt.Println(secretsmanager.ErrCodeDecryptionFailure, aerr.Error())

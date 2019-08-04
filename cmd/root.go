@@ -8,7 +8,7 @@ import (
 
 	"github.com/spf13/cobra"
 )
-
+var iamRole string
 var cfgFile string
 var awsSecretID string
 var k8sSecretName string

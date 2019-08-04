@@ -85,6 +85,7 @@ func init() {
 	importSecretCmd.Flags().StringVarP(&k8sSecretName, "k8s-secret-name", "k", "", "Secret object name in ks")
 	importSecretCmd.Flags().StringVarP(&nameSpace, "namespace", "n", "default", "Namespace for the secret")
 	importSecretCmd.Flags().BoolVarP(&force, "force", "f", false, "if a secret exists, update it ")
+	importSecretCmd.Flags().StringVarP(&iamRole, "role-arn", "r", "", "aws iam role")
 	importSecretCmd.MarkFlagRequired("aws-secret-id")
 	rootCmd.AddCommand(importSecretCmd)
 }
