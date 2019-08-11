@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/aws/aws-sdk-go/service/ssm"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -126,5 +128,42 @@ func GetSecret(secretName string) (string, error) {
 	} else {
 		return decodedBinarySecret, nil
 	}
+
+}
+
+//GetParameter gets parameter value for AWS SSM Parameter Store
+func GetParameter(parameterName string) (string, error) {
+	//region := "us-east-1"
+	envProvider := &credentials.EnvProvider{}
+	var sess *session.Session
+	var err error
+	//fmt.Printf("AWS_ACCESS_KEY_ID: %s\n", os.Getenv("AWS_ACCESS_KEY_ID"))
+	creds := credentials.NewChainCredentials(
+		[]credentials.Provider{
+			envProvider,
+		})
+	sess, err = session.NewSession(&aws.Config{
+		Credentials: creds,
+	})
+
+	if hasValidEnvProvider() == false {
+		fmt.Println("ErrNoValidProvidersFoundInChain, try AssumeRoleTokenProvider")
+		sess, err = session.NewSessionWithOptions(session.Options{
+			AssumeRoleTokenProvider: stscreds.StdinTokenProvider,
+		})
+	}
+
+	svc := ssm.New(session.Must(sess, err))
+	withDecryption := true
+	param, err := svc.GetParameter(&ssm.GetParameterInput{
+		Name:           &parameterName,
+		WithDecryption: &withDecryption,
+	})
+	if err != nil {
+		return "", err
+	}
+	value := *param.Parameter.Value
+	//fmt.Println(value)
+	return value, nil
 
 }

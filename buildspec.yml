@@ -35,7 +35,7 @@ phases:
       - aws eks update-kubeconfig --name $EKS_CLUSTER_NAME
       - cat ~/.kube/config
       - kubectl get pods --all-namespaces
-      - kubectl-aws_secrets import -a xm-keytools.root.pass
+      - kubectl aws-secrets import -f cmd/secrets.yaml
    
 artifacts:
   files: $CODEBUILD_SRC_DIR/bin/kubectl-aws-secrets.tar.gz

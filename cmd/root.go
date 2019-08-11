@@ -8,12 +8,15 @@ import (
 
 	"github.com/spf13/cobra"
 )
+
 var iamRole string
 var cfgFile string
-var awsSecretID string
+var awsKeyName string
+var source string
 var k8sSecretName string
-var force bool
+var update bool
 var nameSpace string
+var secretFilePath string
 
 type awsSecret struct {
 	out io.Writer

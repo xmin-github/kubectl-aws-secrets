@@ -19,7 +19,7 @@ func createGetCommand(streams genericclioptions.IOStreams) *cobra.Command {
 		Short:        "import secrets from AWS Secrets Manager",
 		SilenceUsage: true,
 		RunE: func(c *cobra.Command, args []string) error {
-			secretName, err := c.Flags().GetString("aws-secret-id")
+			secretName, err := c.Flags().GetString("aws-key-name")
 			if err != nil {
 				return err
 			}
@@ -61,8 +61,8 @@ func (sv *awsSecret) getCmdExecute(secretName string) error {
 var getSecretCmd = createGetCommand(genericclioptions.IOStreams{In: os.Stdin, Out: os.Stdout, ErrOut: os.Stderr})
 
 func init() {
-	getSecretCmd.Flags().StringVarP(&awsSecretID, "aws-secret-id", "a", "", "Secret Name in AWS Secrets Manager")
+	getSecretCmd.Flags().StringVarP(&awsKeyName, "aws-key-name", "a", "", "Secret Name in AWS Secrets Manager")
 	getSecretCmd.Flags().StringVarP(&iamRole, "role-arn", "r", "", "aws iam role")
-	getSecretCmd.MarkFlagRequired("aws-secret-id")
+	getSecretCmd.MarkFlagRequired("aws-key-name")
 	rootCmd.AddCommand(getSecretCmd)
 }
