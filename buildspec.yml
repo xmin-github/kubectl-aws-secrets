@@ -36,8 +36,8 @@ phases:
       #- cat ~/.kube/config
       - kubectl get pods --all-namespaces
       #for some reason the plugin is not recognized by kubectl on aws linux. we can still use the plugin as standalone tool.
-      #- kubectl aws-secrets import -f cmd/secrets.yaml
-      - kubectl-aws_secrets import -f cmd/secrets.yaml
+      #- kubectl aws-secrets import -f cmd/secrets. -u
+      - kubectl-aws_secrets import -f cmd/secrets.yaml -u
    
 artifacts:
   files: $CODEBUILD_SRC_DIR/bin/kubectl-aws-secrets.tar.gz
